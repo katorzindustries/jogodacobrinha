@@ -1,53 +1,114 @@
 var canvas;
 var direcao;
 var velocidade;
-var cobrinha;
-
+var cobrinha = new Array(new Array());;
+var up = true;
+var upaux = true;
 var reiniciarGame;
 var animacao;
 var verificacaoCobrinha;
 var ativadorVerficador;
+var itens = [];
+var dificuldade = 500;
+var HScore = 0,
+    limpar = false;
+var win, lose, pick, clear, bg, slow;
 
 function pararJogo() {
+    lose = new Audio('lose.mp3');
+    lose.play();
+    clearInterval(verificaCobrinha);
     clearInterval(animacao);
+    console.log(HScore);
+    if (HScore <= ((cobrinha.length - 2) * 10)) {
+        setCookie('score', ((cobrinha.length - 2) * 10), 365);
+        console.log("TNC");
+    }
+    canvas.fillStyle = "#fff";
     canvas.drawText({
-        fillStyle: '#170',
+        fillStyle: '#000',
+        shadowColor: '#f00',
+        shadowBlur: 1,
         fontStyle: 'bold',
-        fontSize: '30pt',
-        fontFamily: 'Trebuchet MS, sans-serif',
-        text: 'Você perdeu!',
+        fontSize: 20,
+        fontFamily: 'UBUNTU, sans-serif',
+        text: 'VOCÊ MORREU ( ._.)',
         x: 300,
-        y: 200,
+        y: 180,
         align: 'center',
-        maxWidth: 300,
+        maxWidth: 600,
         lineHeight: 2
     });
+    canvas.drawText({
+        fillStyle: '#000',
+        shadowColor: '#0dd',
+        shadowBlur: 1,
+        fontStyle: 'bold',
+        fontSize: 20,
+        fontFamily: 'Trebuchet MS, sans-serif',
+        text: 'Pressione alguma tecla para reiniciar',
+        x: 300,
+        y: 220,
+        align: 'center',
+        maxWidth: 600,
+        lineHeight: 2
+    });
+    reiniciarGame = true;
 }
-
-
-
 
 function desenhaPlayer(xCabeca, yCabeca) {
 
+    canvas.drawText({
+        fillStyle: '#000',
+        shadowColor: '#0f0',
+        shadowBlur: 1,
+        fontStyle: 'bold',
+        fontSize: 12,
+        fontFamily: 'UBUNTU, sans-serif',
+        text: 'Pontuação: ' + ((cobrinha.length - 2) * 10),
+        x: 100,
+        y: 10,
+        align: 'center',
+        maxWidth: 600,
+        lineHeight: 2
+    });
+    if (((cobrinha.length - 2) * 10) > HScore) {
+        HScore = ((cobrinha.length - 2) * 10);
+    }
+
+    canvas.drawText({
+        fillStyle: '#000',
+        shadowColor: '#00f',
+        shadowBlur: 1,
+        fontStyle: 'bold',
+        fontSize: 12,
+        fontFamily: 'UBUNTU, sans-serif',
+        text: " Highscore: " + HScore,
+        x: 500,
+        y: 10,
+        align: 'center',
+        maxWidth: 600,
+        lineHeight: 2
+    });
     canvas.drawRect({
-        fillStyle: '#910',
-        shadowColor: '#000',
-        shadowBlur: 4,
+        fillStyle: '#119',
+        strokeStyle: '#000',
         x: xCabeca,
         y: yCabeca,
-        width: 10,
-        height: 10
+        width: 12,
+        height: 12
     });
     for (var i = 1; i < cobrinha.length; i++) {
         canvas.drawRect({
             fillStyle: '#190',
+            strokeStyle: '#000',
+            strokeWidth: 1,
             x: cobrinha[i][0],
             y: cobrinha[i][1],
             width: 10,
             height: 10
         });
     }
-
 }
 
 function atualizaCobrinha(xCabeca, yCabeca) {
@@ -58,86 +119,192 @@ function atualizaCobrinha(xCabeca, yCabeca) {
         cobrinha[i][1] = cobrinha[i - 1][1];
 
     }
-    console.log(cobrinha.length);
-
 }
 
 function verificaCobrinha(xCabeca, yCabeca) {
-    console.log("testado");
     for (var i = 2; i < cobrinha.length; i++) {
-        if (cobrinha[0][0] == cobrinha[i][0] && cobrinha[0][1] == cobrinha[i][1]) {
+        if (xCabeca == cobrinha[i][0] && yCabeca == cobrinha[i][1]) {
             pararJogo();
             clearInterval(this);
         }
+    }
+    for (var i = 0; i < itens.length; i++) {
+        if (xCabeca == itens[i].x && yCabeca == itens[i].y && itens[i].tipo < dificuldade) {
+            criarItem(2);
+            pick.play();
+            cobrinha.push([-10, -10]);
+            itens[i].x = -100;
+            itens[i].y = -100
+            itens[i].tipo = dificuldade + 1;
+            //aumenta velocidade a cada 50 pontos.
+            if (((cobrinha.length - 2) % 5) == 0 && velocidade > 30) {
+                velocidade -= 30;
+                win.play();
+                clearInterval(animacao);
+                animacao = setInterval(quadro, velocidade);
+            }
+
+
+
+        } else if (xCabeca == itens[i].x && yCabeca == itens[i].y && itens[i].tipo > dificuldade && itens[i].tipo <= 1000) {
+            pararJogo();
+            clearInterval(this);
+        } else if (xCabeca == itens[i].x && yCabeca == itens[i].y && ((cobrinha.length - 2) * 10) > 500 && limpar == true && itens[i].tipo == 2000) {
+            limpar = false;
+            for (var i = 0; i < itens.length; i++) {
+                if (itens[i].tipo > dificuldade && itens[i].tipo <= 1000) {
+                    itens[i].x = -100;
+                    itens[i].y = -100;
+                }
+            }
+            clear.play();
+        } else
+        if (xCabeca == itens[i].x && yCabeca == itens[i].y && limpar == true && itens[i].tipo == 2000) {
+            limpar = false;
+            for (var i = 0; i < itens.length; i++) {
+                if (itens[i].tipo > dificuldade && itens[i].tipo <= 1000) {
+                    itens[i].x = -100;
+                    itens[i].y = -100;
+                }
+            }
+            clear.play();
+        }
 
     }
-
-    console.log(cobrinha.length);
-
 }
 
+function movimentaPlayer(keyCode) {
 
-
-
-function movimentaPlayer(direcao) {
-    switch (direcao) {
+    switch (keyCode) {
         case 37:
+            direcao = keyCode;
             canvas.clearCanvas();
             xCabeca = cobrinha[0][0] - 10;
             yCabeca = cobrinha[0][1];
+            verificaCobrinha(xCabeca, yCabeca);
             desenhaPlayer(xCabeca, yCabeca);
-            atualizaCobrinha(xCabeca, yCabeca)
+            atualizaCobrinha(xCabeca, yCabeca);
+
+
             break;
         case 38:
+            direcao = keyCode;
             canvas.clearCanvas();
             xCabeca = cobrinha[0][0];
             yCabeca = cobrinha[0][1] - 10;
+            verificaCobrinha(xCabeca, yCabeca);
             desenhaPlayer(xCabeca, yCabeca);
-            atualizaCobrinha(xCabeca, yCabeca)
+            atualizaCobrinha(xCabeca, yCabeca);
             break;
 
         case 39:
+            direcao = keyCode;
             canvas.clearCanvas();
             xCabeca = cobrinha[0][0] + 10;
             yCabeca = cobrinha[0][1];
+            verificaCobrinha(xCabeca, yCabeca);
             desenhaPlayer(xCabeca, yCabeca);
-            atualizaCobrinha(xCabeca, yCabeca)
-
+            atualizaCobrinha(xCabeca, yCabeca);
             break;
 
 
         case 40:
+            direcao = keyCode;
             canvas.clearCanvas();
             xCabeca = cobrinha[0][0];
             yCabeca = cobrinha[0][1] + 10;
+            verificaCobrinha(xCabeca, yCabeca);
             desenhaPlayer(xCabeca, yCabeca);
-            atualizaCobrinha(xCabeca, yCabeca)
+            atualizaCobrinha(xCabeca, yCabeca);
             break;
 
         default:
+
             break;
     }
-
-
-
+    for (var i = 0; i < itens.length; i++) {
+        if (itens[i].tipo < dificuldade) {
+            canvas.drawEllipse({
+                fillStyle: '#f12',
+                strokeStyle: '#000',
+                strokeWidth: 1,
+                shadowColor: '#f00',
+                x: itens[i].x,
+                y: itens[i].y,
+                width: 10,
+                height: 10
+            });
+        }
+        if (itens[i].tipo >= dificuldade && itens[i].tipo <= 1000) {
+            canvas.drawEllipse({
+                fillStyle: '#000',
+                shadowColor: '#000',
+                x: itens[i].x,
+                y: itens[i].y,
+                width: 10,
+                height: 10
+            });
+        }
+        if (itens[i].tipo == 2000) {
+            canvas.drawEllipse({
+                fillStyle: '#00d',
+                shadowColor: '#000',
+                x: itens[i].x,
+                y: itens[i].y,
+                width: 10,
+                height: 10
+            });
+        }
+    }
 }
 
 function quadro() {
-    if (cobrinha[0][1] >= 400) {
-        cobrinha[0][1] = 0;
+    var verificaMacas = false;
+    var contaDificuldade = 0;
+    var itemUP = false;
+    for (var i = 0; i < itens.length; i++) {
+        if (itens[i].tipo < dificuldade && itens[i].tipo > 0) {
+            verificaMacas = true;
+        }
+        if (itens[i].tipo > dificuldade && itens[i].tipo <= 1000) {
+            contaDificuldade++;
+        }
+        if (itens[i].tipo == 2000) {
+            itemUP = true;
+        }
+
+    }
+    if (contaDificuldade > 90 && limpar == false && itemUP == false) {
+        console.log("FOI");
+        itens.push({
+            x: Math.floor(Math.random() * 59 + 1) * 10,
+            y: Math.floor(Math.random() * 39 + 1) * 10,
+            tipo: 2000
+        });
+        limpar = true;
+
+
+    }
+    if (verificaMacas == false) {
+        criarItem(2);
     }
 
-    if (cobrinha[0][1] < 0) {
-        cobrinha[0][1] = 400;
-    }
-    if (cobrinha[0][0] >= 600) {
-        cobrinha[0][0] = 0;
-    }
-    if (cobrinha[0][0] < 0) {
-        cobrinha[0][0] = 600;
-    }
-    movimentaPlayer(direcao);
+    if (cobrinha[0][1] > 390) {
+        pararJogo();
+    } else
 
+    if (cobrinha[0][1] < 10) {
+
+        pararJogo();
+    } else
+    if (cobrinha[0][0] > 590) {
+
+        pararJogo();
+    } else
+    if (cobrinha[0][0] < 10) {
+        pararJogo();
+    } else
+        movimentaPlayer(direcao);
 }
 
 document.onkeydown = function(event) {
@@ -157,67 +324,153 @@ document.onkeydown = function(event) {
         }
         if (keyCode == 32 && ativadorVerficador == true) {
             iniciaJogo();
+            bg.play();
             ativadorVerficador = false;
         } else {
             if (!ativadorVerficador) {
-                direcao = keyCode;
+                if (keyCode == 32) {
+                    keyCode = direcao;
+                }
+                keyCode;
                 movimentaPlayer(keyCode);
             }
-
         }
-
-
     }
 }
 
+function criarItem(qtd) {
+    var auxX = Math.floor(Math.random() * 59 + 1) * 10;
+    var auxY = Math.floor(Math.random() * 39 + 1) * 10;
+    var igual = false;
+    for (var i = 0; i < itens.length; i++) {
+        if (itens[i].x == auxX && itens[i].y == auxY) {
+            igual = true;
+            i = 0;
+            auxX = Math.floor(Math.random() * 59 + 1) * 10;
+            auxY = Math.floor(Math.random() * 39 + 1) * 10;
+        }
+    }
+    itens.push({
+        x: Math.floor(Math.random() * 59 + 1) * 10,
+        y: Math.floor(Math.random() * 39 + 1) * 10,
+        tipo: (Math.random() * 1000)
+    });
+    var auxX = Math.floor(Math.random() * 59 + 1) * 10;
+    var auxY = Math.floor(Math.random() * 39 + 1) * 10;
+    var igual = false;
+    for (var i = 0; i < itens.length; i++) {
+        if (itens[i].x == auxX && itens[i].y == auxY) {
+            igual = true;
+            i = 0;
+            auxX = Math.floor(Math.random() * 59 + 1) * 10;
+            auxY = Math.floor(Math.random() * 39 + 1) * 10;
+        }
+    }
+    itens.push({
+        x: Math.floor(Math.random() * 59 + 1) * 10,
+        y: Math.floor(Math.random() * 39 + 1) * 10,
+        tipo: (Math.random() * 1000)
+    });
 
-
+}
 
 function iniciaJogo() {
+    checkCookie();
+    upaux = true;
+    up = true;
+    lose.pause();
+    start = new Audio('start.mp3');
+    start.play();
+    itens = [];
 
-    clearInterval(animacao);
-    clearInterval(verificaCobrinha);
-    velocidade = 100;
+    velocidade = 300;
     direcao = 39;
     cobrinha = [
-        [100, 200],
         [90, 200],
+        [90, 200]
     ];
     canvas.clearCanvas();
+    criarItem(3);
     animacao = setInterval(quadro, velocidade);
-    verificacaoCobrinha = setInterval(verificaCobrinha, 10);
+    //   verificacaoCobrinha = setInterval(verificaCobrinha, 10);
 }
 
 
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
 
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
+function checkCookie() {
+    HScore = getCookie("score");
+
+    if (HScore == '') {
+        HScore = 0;
+    }
+    console.log(HScore);
+}
 
 window.onload = function() {
+    win = new Audio('win.mp3');
+    lose = new Audio('lose.mp3');
+    pick = new Audio('collect.mp3');
+    slow = new Audio('slow.mp3');
+    bg = new Audio('bg.mp3');
+    clear = new Audio('clear.mp3');
+    bg.loop = true;
     canvas = $('#cenario');
-
-    canvas.drawRect({
-        fillStyle: '#910',
-        shadowColor: '#000',
-        shadowBlur: 4,
-        x: 100,
-        y: 200,
-        width: 10,
-        height: 10
+    canvas.drawText({
+        fillStyle: '#050',
+        strokeStyle: '#25a',
+        shadowColor: '#f00',
+        shadowBlur: 1,
+        fontStyle: 'bold',
+        fontSize: 30,
+        fontFamily: 'UBUNTU, sans-serif',
+        text: 'THE LIFE',
+        x: 300,
+        y: 180,
+        radius: 110,
+        align: 'center',
+        maxWidth: 600,
     });
-    canvas.drawRect({
-        fillStyle: '#190',
-        shadowColor: '#010',
-        shadowBlur: 2,
-        x: 90,
-        y: 200,
-        width: 10,
-        height: 10
+    canvas.drawText({
+        fillStyle: '#050',
+        strokeStyle: '#25a',
+        shadowColor: '#f00',
+        shadowBlur: 1,
+        fontStyle: 'bold',
+        fontSize: 40,
+        fontFamily: 'UBUNTU, sans-serif',
+        text: 'Snake',
+        x: 300,
+        y: 120,
+        align: 'center',
+        maxWidth: 600,
     });
     canvas.drawText({
         fillStyle: '#000',
         shadowColor: '#f00',
         shadowBlur: 1,
         fontStyle: 'bold',
-        fontSize: '20pt',
+        fontSize: 20,
         fontFamily: 'Trebuchet MS, sans-serif',
         text: 'Aperte [ESPAÇO] para iniciar',
         x: 300,

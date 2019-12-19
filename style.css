@@ -1,9 +1,23 @@
 body {
     text-align: center;
+    background-image: url("bg.jpg");
+    color: white;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    background-color: #464646;
+}
+
+p {
+    width: 400px;
+    margin: 0 auto;
+    background-color: rgba(3, 0, 0, 0.5);
 }
 
 canvas {
-    margin: auto;
+    margin: 100px auto;
     display: block;
     border: 1px solid #000000;
+    background-color: #fbf16398;
 }

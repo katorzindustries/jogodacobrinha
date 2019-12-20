@@ -13,16 +13,15 @@ var dificuldade = 500;
 var HScore = 0,
     limpar = false;
 var win, lose, pick, clear, bg, slow;
+var qtdPretinhas = 40;
 
 function pararJogo() {
     lose = new Audio('lose.mp3');
     lose.play();
     clearInterval(verificaCobrinha);
     clearInterval(animacao);
-    console.log(HScore);
     if (HScore <= ((cobrinha.length - 2) * 10)) {
         setCookie('score', ((cobrinha.length - 2) * 10), 365);
-        console.log("TNC");
     }
     canvas.fillStyle = "#fff";
     canvas.drawText({
@@ -130,15 +129,15 @@ function verificaCobrinha(xCabeca, yCabeca) {
     }
     for (var i = 0; i < itens.length; i++) {
         if (xCabeca == itens[i].x && yCabeca == itens[i].y && itens[i].tipo < dificuldade) {
-            criarItem(2);
+            criarItem(2, xCabeca, yCabeca);
             pick.play();
             cobrinha.push([-10, -10]);
             itens[i].x = -100;
             itens[i].y = -100
-            itens[i].tipo = dificuldade + 1;
+            itens[i].tipo = 3000;
             //aumenta velocidade a cada 50 pontos.
             if (((cobrinha.length - 2) % 5) == 0 && velocidade > 30) {
-                velocidade -= 30;
+                velocidade -= 10;
                 win.play();
                 clearInterval(animacao);
                 animacao = setInterval(quadro, velocidade);
@@ -149,14 +148,20 @@ function verificaCobrinha(xCabeca, yCabeca) {
         } else if (xCabeca == itens[i].x && yCabeca == itens[i].y && itens[i].tipo > dificuldade && itens[i].tipo <= 1000) {
             pararJogo();
             clearInterval(this);
-        } else if (xCabeca == itens[i].x && yCabeca == itens[i].y && ((cobrinha.length - 2) * 10) > 500 && limpar == true && itens[i].tipo == 2000) {
+        } else if (xCabeca == itens[i].x && yCabeca == itens[i].y && ((cobrinha.length - 2) * 10) > 180 && limpar == true && itens[i].tipo == 2000) {
             limpar = false;
             for (var i = 0; i < itens.length; i++) {
                 if (itens[i].tipo > dificuldade && itens[i].tipo <= 1000) {
                     itens[i].x = -100;
                     itens[i].y = -100;
                 }
+                if (itens[i].tipo == 2000) {
+                    itens[i].x = -100;
+                    itens[i].y = -100;
+                    itens[i].tipo = dificuldade + 1;
+                }
             }
+
             clear.play();
         } else
         if (xCabeca == itens[i].x && yCabeca == itens[i].y && limpar == true && itens[i].tipo == 2000) {
@@ -165,6 +170,11 @@ function verificaCobrinha(xCabeca, yCabeca) {
                 if (itens[i].tipo > dificuldade && itens[i].tipo <= 1000) {
                     itens[i].x = -100;
                     itens[i].y = -100;
+                }
+                if (itens[i].tipo == 2000) {
+                    itens[i].x = -100;
+                    itens[i].y = -100;
+                    itens[i].tipo = dificuldade + 1;
                 }
             }
             clear.play();
@@ -274,19 +284,36 @@ function quadro() {
         }
 
     }
-    if (contaDificuldade > 90 && limpar == false && itemUP == false) {
-        console.log("FOI");
+    if (contaDificuldade >= qtdPretinhas && velocidade <= 200 && limpar == false && itemUP == false) {
+        qtdPretinhas += qtdPretinhas * 1.05;
+        var auxX = Math.floor(Math.random() * 59 + 1) * 10;
+        var auxY = Math.floor(Math.random() * 39 + 1) * 10;
+        var igual = false;
+        for (var i = 0; i < itens.length; i++) {
+            if (itens[i].x == auxX && itens[i].y == auxY) {
+                igual = true;
+                i = 0;
+                auxX = Math.floor(Math.random() * 59 + 1) * 10;
+                auxY = Math.floor(Math.random() * 39 + 1) * 10;
+            }
+        }
+        for (var i = 0; i < cobrinha.length; i++) {
+            if (cobrinha[i][0] == auxX && cobrinha[i][1] == auxY) {
+                igual = true;
+                i = 0;
+                auxX = Math.floor(Math.random() * 59 + 1) * 10;
+                auxY = Math.floor(Math.random() * 39 + 1) * 10;
+            }
+        }
         itens.push({
             x: Math.floor(Math.random() * 59 + 1) * 10,
             y: Math.floor(Math.random() * 39 + 1) * 10,
             tipo: 2000
         });
         limpar = true;
-
-
     }
     if (verificaMacas == false) {
-        criarItem(2);
+        criarItem(2, cobrinha[1][0], cobrinha[1][1]);
     }
 
     if (cobrinha[0][1] > 390) {
@@ -338,43 +365,41 @@ document.onkeydown = function(event) {
     }
 }
 
-function criarItem(qtd) {
-    var auxX = Math.floor(Math.random() * 59 + 1) * 10;
-    var auxY = Math.floor(Math.random() * 39 + 1) * 10;
-    var igual = false;
-    for (var i = 0; i < itens.length; i++) {
-        if (itens[i].x == auxX && itens[i].y == auxY) {
-            igual = true;
-            i = 0;
-            auxX = Math.floor(Math.random() * 59 + 1) * 10;
-            auxY = Math.floor(Math.random() * 39 + 1) * 10;
+function criarItem(qtd, Cabecax, Cabecay) {
+    for (var k = 0; k < qtd; k++) {
+        var auxX = Math.floor(Math.random() * 59 + 1) * 10;
+        var auxY = Math.floor(Math.random() * 39 + 1) * 10;
+        var igual = false;
+        for (var i = 0; i < itens.length; i++) { //verifica se já não existe um item nessa posição.
+            if (itens[i].x == auxX && itens[i].y == auxY) {
+                igual = true;
+                break;
+            }
+        }
+        for (var i = 0; i < cobrinha.length; i++) { //verifica se não é a posição das partes da cobrinha
+            if (cobrinha[i][0] == auxX && cobrinha[i][1] == auxY) {
+                igual = true;
+                break;
+            }
+        }
+        if (((auxY >= (Cabecay - 90)) && (auxY <= (Cabecay + 90))) && ((auxX >= (Cabecax - 90)) && (auxX <= (Cabecax + 90)))) {
+            k = k - 1;
+        } else {
+            if (igual == false) {
+                itens.push({
+                    x: auxX,
+                    y: auxY,
+                    tipo: (Math.random() * 1000)
+                });
+            } else {
+                k = k - 1;
+            }
         }
     }
-    itens.push({
-        x: Math.floor(Math.random() * 59 + 1) * 10,
-        y: Math.floor(Math.random() * 39 + 1) * 10,
-        tipo: (Math.random() * 1000)
-    });
-    var auxX = Math.floor(Math.random() * 59 + 1) * 10;
-    var auxY = Math.floor(Math.random() * 39 + 1) * 10;
-    var igual = false;
-    for (var i = 0; i < itens.length; i++) {
-        if (itens[i].x == auxX && itens[i].y == auxY) {
-            igual = true;
-            i = 0;
-            auxX = Math.floor(Math.random() * 59 + 1) * 10;
-            auxY = Math.floor(Math.random() * 39 + 1) * 10;
-        }
-    }
-    itens.push({
-        x: Math.floor(Math.random() * 59 + 1) * 10,
-        y: Math.floor(Math.random() * 39 + 1) * 10,
-        tipo: (Math.random() * 1000)
-    });
-
 }
 
 function iniciaJogo() {
+
     checkCookie();
     upaux = true;
     up = true;
@@ -383,14 +408,14 @@ function iniciaJogo() {
     start.play();
     itens = [];
 
-    velocidade = 300;
+    velocidade = 200;
     direcao = 39;
     cobrinha = [
         [90, 200],
         [90, 200]
     ];
     canvas.clearCanvas();
-    criarItem(3);
+
     animacao = setInterval(quadro, velocidade);
     //   verificacaoCobrinha = setInterval(verificaCobrinha, 10);
 }
@@ -424,7 +449,6 @@ function checkCookie() {
     if (HScore == '') {
         HScore = 0;
     }
-    console.log(HScore);
 }
 
 window.onload = function() {
